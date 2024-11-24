@@ -77,18 +77,23 @@ class TokenDatabase:
         raise Exception("Max retries exceeded, failed to connect to the database")
 
     def create_token_record_table(self):
-        '''Create the Table that holds record for Trade orders'''
+        '''Drop and recreate the table to ensure constraints'''
         cur = self.conn.cursor()
+        # Drop the table if it already exists
+        cur.execute("DROP TABLE IF EXISTS token_records;")
+        # Recreate the table with the correct UNIQUE constraint
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS token_records (
+            CREATE TABLE token_records (
                 id SERIAL PRIMARY KEY,
-                contract_address VARCHAR(200) NOT NULL,
+                contract_address VARCHAR(200) NOT NULL UNIQUE,  -- Add UNIQUE constraint
                 buy_status VARCHAR(10) DEFAULT 'UNBOUGHT',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
         self.conn.commit()
         cur.close()
+
+
 
     def check_buy_status(self, contract_address):
         '''Check the buy status of a token by its contract address'''
@@ -275,6 +280,9 @@ def clickBuyButton(driver, retries=3):
                 last_row = rows[-1]
 
                 button = last_row.find_element(By.TAG_NAME, 'button')
+                driver.execute_script("arguments[0].scrollIntoView(false);", button)
+                time.sleep(3)
+                
                 button.click()
                 print("Clicked buy button using first approach.")
                 return True
@@ -303,6 +311,8 @@ def clickBuyButton(driver, retries=3):
                     print("In Reply Markup")
                     reply_markup_row = reply_markup.find_elements(By.CLASS_NAME, "reply-markup-row")
                     buy_button = reply_markup_row[len(reply_markup_row) - 1].find_element(By.TAG_NAME, "button")
+                    driver.execute_script("arguments[0].scrollIntoView(false);", buy_button)
+                    time.sleep(3)
                     buy_button.click()
                     print("Clicked buy button using second approach.")
                     return True
@@ -341,7 +351,6 @@ def interactWithUnibot(driver, token):
 def runBot():
     driver = initDriver()
     db = TokenDatabase()
-    print(db.get_unbought_tokens())
 
     openTelegram(driver)
     time.sleep(120)  # Allow time for manual login
@@ -353,8 +362,10 @@ def runBot():
                 if not db.check_buy_status(token):
                     success = interactWithUnibot(driver, token)
                     if success:
+                        print("BUY button was clicked successfully")
                         db.set_token_as_bought(token)
             time.sleep(20)  # Wait for 20 seconds before checking again
+            print('Database Check Complete.')
     finally:
         db.close()
         driver.quit()

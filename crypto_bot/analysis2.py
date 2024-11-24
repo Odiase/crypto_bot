@@ -423,6 +423,13 @@ def tokenPageDataExtraction(driver):
                     'total_supply': str(token_data_list[6].text),
                     "telegram_followers":  followers
                 }
+                db = TokenDatabase()
+                if db.token_exists(contract_address):
+                    print("Token ALready Exists")
+                    pass
+                else:
+                    db.register_token_record(contract_address)
+                    print('New Token Registered.')
                 return data
             return {}
         else:
@@ -592,4 +599,4 @@ def main():
 
 while True:
     main()
-    time.sleep(1800)
+    time.sleep(300)
