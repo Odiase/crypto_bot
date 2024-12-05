@@ -423,13 +423,16 @@ def tokenPageDataExtraction(driver):
                     'total_supply': str(token_data_list[6].text),
                     "telegram_followers":  followers
                 }
-                db = TokenDatabase()
-                if db.token_exists(contract_address):
-                    print("Token ALready Exists")
-                    pass
-                else:
-                    db.register_token_record(contract_address)
-                    print('New Token Registered.')
+                try:
+                    db = TokenDatabase()
+                    if db.token_exists(contract_address):
+                        print("Token ALready Exists")
+                        pass
+                    else:
+                        db.register_token_record(contract_address)
+                        print('New Token Registered.')
+                except:
+                    print(f"Couldn't Save Token Address {contract_address} In Database")
                 return data
             return {}
         else:
@@ -550,7 +553,9 @@ def enterFilterCriteria(driver, minLiquidity, maxMarketCap, poolCreated, filter_
 def initDriver():
     '''Initializes the Chrome WebDriver with error handling'''
     try:
-        chromedriver_autoinstaller.install()
+        # # chromedriver_autoinstaller.install()
+        # path = chromedriver_autoinstaller.install()
+        # print(f"Chromedriver installed at: {path}")
         options = Options()
         options.add_argument("--disable-blink-features=AutomationControlled")
         # options.add_argument("--headless")  # Uncomment for headless mode
@@ -576,6 +581,7 @@ def main():
     global driver
     driver = initDriver()
     driver.get("https://dextools.io/app/en/pairs")
+    driver.maximize_window()
     
     # Close ads if any pop up
     # try:
@@ -586,7 +592,8 @@ def main():
     # Run the filters
     filter_criteria = [
         {'minLiquidity': 10000, 'maxMarketCap': 100000, 'poolCreated': 10, 'filter_number': '1'},
-        {'minLiquidity': 100000, 'maxMarketCap': 1000000, 'poolCreated': 24, 'filter_number':'2'}
+        {'minLiquidity': 100000, 'maxMarketCap': 1000000, 'poolCreated': 24, 'filter_number':'2'},
+        {'minLiquidity': 1000, 'maxMarketCap': 10000, 'poolCreated': 1, 'filter_number':'3'}
     ]
 
     for criteria in filter_criteria:
@@ -594,9 +601,13 @@ def main():
         if True:
             enterFilterCriteria(driver, criteria['minLiquidity'], criteria['maxMarketCap'], criteria['poolCreated'], criteria['filter_number'])
 
-    # driver.quit()
+    driver.quit()
     print("Script completed.")
 
 while True:
-    main()
-    time.sleep(300)
+    try:
+        main()
+    except Exception as e:
+        print("Exception Occured : ",e)
+        pass
+    time.sleep(1200)

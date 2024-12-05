@@ -360,6 +360,7 @@ def runBot():
             unbought_tokens = db.get_unbought_tokens()
             for token in unbought_tokens:
                 if not db.check_buy_status(token):
+                    driver.execute_script("location.reload();")
                     success = interactWithUnibot(driver, token)
                     if success:
                         print("BUY button was clicked successfully")

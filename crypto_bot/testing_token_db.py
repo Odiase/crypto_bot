@@ -142,7 +142,7 @@ try:
     # db.create_token_record_table()
     print("Table `token_records` checked/created successfully.")
     # Dummy contract address for testing
-    dummy_contract_address = "9ZAwYLDrP2goDowrEzgM2RHtv9754N6aRUNzG4xda42C"
+    dummy_contract_address = "2xAP9hkgBREdhU7uTW5mdxNM7dgDQtTjjFTJScw3eYkC"
     # Register the dummy token
     db.register_token_record(dummy_contract_address)
     print(f"Dummy token with contract address {dummy_contract_address} has been registered.")
